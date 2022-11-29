@@ -1,41 +1,46 @@
-from dash import Dash, html, dcc
+from dash import Dash, dcc, html, Input, Output
 import plotly.express as px
+import plotly.graph_objs as go
 import pandas as pd
+
+df = pd.read_csv('crimedata.csv')
+
+colors = {
+    'black': '#111111',
+    'white': '#FFFFFF',
+    'text': '#7FDBFF',
+    'paper_bgcolor_1': '#008B92',
+    'plot_bgcolor_1': '#B7D5FE',
+    'paper_bgcolor_2': '#D01120',
+    'plot_bgcolor_2': '#E7C5C6'
+}
 
 app = Dash(__name__)
 
-colors = {
-    'background': '#111111',
-    'text': '#7FDBFF'
-}
+autoThefts_data = df.groupby(['state']).agg({"autoTheft": 'sum'}).reset_index()
+autoThefts = px.histogram(autoThefts_data, x='state', y='autoTheft')
+autoThefts.update_layout(xaxis_title="Штат",
+                         yaxis_title="Количество угонов", title="Количество угонов по штатам",
+                         plot_bgcolor=colors['plot_bgcolor_1'],
+                         paper_bgcolor=colors['paper_bgcolor_1'],
+                         font_color=colors['white']
+                         )
+
+df = df.sort_values('population')
+burglaries = px.line(df, x='population', y='burglaries')
+burglaries.update_layout(xaxis_title="Население",
+                         yaxis_title="Количество краж со взломом", title="Зависимость краж со взломом от населения",
+                         xaxis_range=[0, 1000000],
+                         plot_bgcolor=colors['plot_bgcolor_2'],
+                         paper_bgcolor=colors['paper_bgcolor_2'],
+                         font_color=colors['white']
+                         )
 
 
-df = pd.DataFrame({
-    "Fruit": ["Apples", "Oranges", "Bananas", "Apples", "Oranges", "Bananas"],
-    "Amount": [4, 1, 2, 2, 4, 5],
-    "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
-})
 
-
-fig = px.bar(df, x="Fruit", y="Amount", color="City", barmode="group")
-
-fig.update_layout(
-    plot_bgcolor=colors['background'],
-    paper_bgcolor=colors['background'],
-    font_color=colors['text']
-)
-
-app.layout = html.Div(children=[
-    html.H1(children='Hello Dash', style={'textAlign': 'center', 'color': '#7FDBFF'}),
-
-    html.Div(children='''
-        Dash: A web application framework for your data.
-    '''),
-
-    dcc.Graph(
-        id='example-graph',
-        figure=fig
-    )
+app.layout = html.Div([
+    dcc.Graph(id='autoThefts', figure=autoThefts),
+    dcc.Graph(id='burglaries', figure=burglaries),
 ])
 
 if __name__ == '__main__':
