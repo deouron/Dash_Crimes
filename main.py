@@ -36,11 +36,42 @@ burglaries.update_layout(xaxis_title="Население",
                          font_color=colors['white']
                          )
 
+larcenies_data = df.groupby(['householdsize']).agg({"larcenies": 'mean'}).reset_index()
+larcenies = px.line(larcenies_data, x='householdsize', y='larcenies')
+larcenies.update_layout(xaxis_title="Размер домохозяйства",
+                        yaxis_title="Среднее количество краж",
+                        title="Зависимость краж со взломом от размера домохозяйства",
+                        plot_bgcolor=colors['plot_bgcolor_1'],
+                        paper_bgcolor=colors['paper_bgcolor_1'],
+                        font_color=colors['white']
+                        )
 
+df['medFamInc_with_step'] = df['medFamInc'] - df['medFamInc'] % 1000
+murders_data = df.groupby(['medFamInc_with_step']).agg({"murders": 'mean'}).reset_index()
+murders = px.line(murders_data, x='medFamInc_with_step', y='murders')
+murders.update_layout(xaxis_title="Доход (с шагом 1000)",
+                      yaxis_title="Среднее количество убийств", title="Зависимость убийств от уровня дохода семьи",
+                      plot_bgcolor=colors['plot_bgcolor_2'],
+                      paper_bgcolor=colors['paper_bgcolor_2'],
+                      font_color=colors['white']
+                      )
+
+rapes_data = df.groupby(['pctUrban']).agg({"rapes": 'mean'}).reset_index()
+rapes = px.line(rapes_data, x='pctUrban', y='rapes')
+rapes.update_layout(xaxis_title="Процент городского населения",
+                    yaxis_title="Среднее количество изнасилований", title="Зависимость изнасилований от соотношения "
+                                                                          "городского и сельского населения",
+                    plot_bgcolor=colors['plot_bgcolor_1'],
+                    paper_bgcolor=colors['paper_bgcolor_1'],
+                    font_color=colors['white']
+                    )
 
 app.layout = html.Div([
     dcc.Graph(id='autoThefts', figure=autoThefts),
     dcc.Graph(id='burglaries', figure=burglaries),
+    dcc.Graph(id='larcenies', figure=larcenies),
+    dcc.Graph(id='murders', figure=murders),
+    dcc.Graph(id='rapes', figure=rapes)
 ])
 
 if __name__ == '__main__':
