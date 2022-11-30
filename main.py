@@ -4,9 +4,13 @@ import plotly.graph_objs as go
 import pandas as pd
 
 df = pd.read_csv('crimedata.csv')
+df['medFamInc_with_step'] = df['medFamInc'] - df['medFamInc'] % 1000
+
 states_df = df.groupby(['state']).agg({"racepctblack": 'mean', 'racePctWhite': 'mean',
     'racePctAsian': 'mean', 'racePctHisp': 'mean', 'murders': 'sum', 'rapes': 'sum', 'robberies': 'sum',
     'assaults': 'sum', 'burglaries': 'sum', 'larcenies': 'sum', 'autoTheft': 'sum', 'arsons': 'sum'}).reset_index()
+
+autoThefts_incomes_state_df = df.groupby(['state', 'medFamInc_with_step']).agg({"autoTheft": 'mean'}).reset_index()
 
 colors = {
     'black': '#111111',
@@ -51,7 +55,6 @@ larcenies.update_layout(xaxis_title="Размер домохозяйства",
                         font_color=colors['white']
                         )
 
-df['medFamInc_with_step'] = df['medFamInc'] - df['medFamInc'] % 1000
 murders_data = df.groupby(['medFamInc_with_step']).agg({"murders": 'mean'}).reset_index()
 murders = px.line(murders_data, x='medFamInc_with_step', y='murders')
 murders.update_layout(xaxis_title="Доход (с шагом 1000)",
@@ -104,7 +107,12 @@ app.layout = html.Div([
     html.Br(),
     html.Label(['Штат:'], style={'font-weight': 'bold', "text-align": "center"}),
     dcc.Dropdown(states_df['state'], states_df['state'][0], id='states_crimes'),
-    dcc.Graph(id='crimes_states')
+    dcc.Graph(id='crimes_states'),
+
+    html.Br(),
+    html.Label(['Штат:'], style={'font-weight': 'bold', "text-align": "center"}),
+    dcc.Dropdown(states_df['state'], states_df['state'][0], id='states_autoThefts'),
+    dcc.Graph(id='autoThefts_states')
 ])
 
 
@@ -181,9 +189,27 @@ def update_output(selected_state):
                           state_df['assaults'], state_df['burglaries'], state_df['larcenies'],
                           state_df['autoTheft'], state_df['arsons']])
 
-    fig.update_layout(title=f"Соотношение рас в {selected_state}",
+    fig.update_layout(title=f"Соотношение преступлений в {selected_state}",
                       plot_bgcolor=colors['plot_bgcolor_4'],
                       paper_bgcolor=colors['plot_bgcolor_4'],
+                      font_color=colors['black'])
+    return fig
+
+
+@app.callback(
+    Output(component_id='autoThefts_states', component_property='figure'),
+    [Input(component_id='states_autoThefts', component_property='value')]
+)
+def update_output(selected_state):
+    state_df = autoThefts_incomes_state_df[autoThefts_incomes_state_df.state == selected_state]
+    state_df = state_df.sort_values(by='medFamInc_with_step')
+    fig = px.line(state_df, x='medFamInc_with_step', y='autoTheft')
+
+    fig.update_layout(xaxis_title="Доход (с шагом 1000)",
+                      yaxis_title="Среднее количество автокраж",
+                      title=f"Зависимость автокраж от дохода в {selected_state}",
+                      plot_bgcolor=colors['plot_bgcolor_3'],
+                      paper_bgcolor=colors['plot_bgcolor_3'],
                       font_color=colors['black'])
     return fig
 
