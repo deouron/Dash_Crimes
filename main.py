@@ -12,7 +12,8 @@ colors = {
     'paper_bgcolor_1': '#008B92',
     'plot_bgcolor_1': '#B7D5FE',
     'paper_bgcolor_2': '#D01120',
-    'plot_bgcolor_2': '#E7C5C6'
+    'plot_bgcolor_2': '#E7C5C6',
+    'plot_bgcolor_3': '#E9F4FF'
 }
 
 app = Dash(__name__)
@@ -68,11 +69,46 @@ rapes.update_layout(xaxis_title="Процент городского насел�
 
 app.layout = html.Div([
     dcc.Graph(id='autoThefts', figure=autoThefts),
+
+    html.Br(),
     dcc.Graph(id='burglaries', figure=burglaries),
+
+    html.Br(),
     dcc.Graph(id='larcenies', figure=larcenies),
+
+    html.Br(),
     dcc.Graph(id='murders', figure=murders),
-    dcc.Graph(id='rapes', figure=rapes)
+
+    html.Br(),
+    dcc.Graph(id='rapes', figure=rapes),
+
+    html.Br(),
+    html.Label(['Community:'], style={'font-weight': 'bold', "text-align": "center"}),
+    dcc.Dropdown(df['communityName'], df['communityName'][0], id='communityName'),
+    dcc.Graph(id='dd-output-container')
 ])
+
+
+@app.callback(
+    Output(component_id='dd-output-container', component_property='figure'),
+    [Input(component_id='communityName', component_property='value')]
+)
+def update_output(selected_community):
+    community_df = df[df.communityName == selected_community]
+    # print(community_df)
+    community_df = community_df.iloc[0]
+    fig = px.pie(community_df, names=['Белые', 'Чёрные',
+                                      'Азиаты', 'Латиноамериканцы'],
+                 values=[community_df['racepctblack'], community_df['racePctWhite'],
+                         community_df['racePctAsian'], community_df['racePctHisp']])
+
+    fig.update_layout(title="Соотношение рас населения",
+                      plot_bgcolor=colors['plot_bgcolor_3'],
+                      paper_bgcolor=colors['plot_bgcolor_3'],
+                      font_color=colors['black']
+                      )
+    return fig
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
