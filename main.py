@@ -189,7 +189,9 @@ def update_output(selected_state):
                           state_df['assaults'], state_df['burglaries'], state_df['larcenies'],
                           state_df['autoTheft'], state_df['arsons']])
 
-    fig.update_layout(title=f"Соотношение преступлений в {selected_state}",
+    fig.update_layout(xaxis_title="Преступления",
+                      yaxis_title="Количество преступлений",
+                      title=f"Соотношение преступлений в {selected_state}",
                       plot_bgcolor=colors['plot_bgcolor_4'],
                       paper_bgcolor=colors['plot_bgcolor_4'],
                       font_color=colors['black'])
