@@ -4,6 +4,9 @@ import plotly.graph_objs as go
 import pandas as pd
 
 df = pd.read_csv('crimedata.csv')
+states_df = df.groupby(['state']).agg({"racepctblack": 'mean', 'racePctWhite': 'mean',
+    'racePctAsian': 'mean', 'racePctHisp': 'mean', 'murders': 'sum', 'rapes': 'sum', 'robberies': 'sum',
+    'assaults': 'sum', 'burglaries': 'sum', 'larcenies': 'sum', 'autoTheft': 'sum', 'arsons': 'sum'}).reset_index()
 
 colors = {
     'black': '#111111',
@@ -13,7 +16,8 @@ colors = {
     'plot_bgcolor_1': '#B7D5FE',
     'paper_bgcolor_2': '#D01120',
     'plot_bgcolor_2': '#E7C5C6',
-    'plot_bgcolor_3': '#E9F4FF'
+    'plot_bgcolor_3': '#E9F4FF',
+    'plot_bgcolor_4': '#FFF1FA'
 }
 
 app = Dash(__name__)
@@ -83,30 +87,104 @@ app.layout = html.Div([
     dcc.Graph(id='rapes', figure=rapes),
 
     html.Br(),
-    html.Label(['Community:'], style={'font-weight': 'bold', "text-align": "center"}),
-    dcc.Dropdown(df['communityName'], df['communityName'][0], id='communityName'),
-    dcc.Graph(id='dd-output-container')
+    html.Label(['Город:'], style={'font-weight': 'bold', "text-align": "center"}),
+    dcc.Dropdown(df['communityName'], df['communityName'][0], id='communityName_races'),
+    dcc.Graph(id='races'),
+
+    html.Br(),
+    html.Label(['Штат:'], style={'font-weight': 'bold', "text-align": "center"}),
+    dcc.Dropdown(states_df['state'], states_df['state'][0], id='state_races'),
+    dcc.Graph(id='races_states'),
+
+    html.Br(),
+    html.Label(['Город:'], style={'font-weight': 'bold', "text-align": "center"}),
+    dcc.Dropdown(df['communityName'], df['communityName'][0], id='communityName_crimes'),
+    dcc.Graph(id='crimes'),
+
+    html.Br(),
+    html.Label(['Штат:'], style={'font-weight': 'bold', "text-align": "center"}),
+    dcc.Dropdown(states_df['state'], states_df['state'][0], id='states_crimes'),
+    dcc.Graph(id='crimes_states')
 ])
 
 
 @app.callback(
-    Output(component_id='dd-output-container', component_property='figure'),
-    [Input(component_id='communityName', component_property='value')]
+    Output(component_id='races', component_property='figure'),
+    [Input(component_id='communityName_races', component_property='value')]
 )
 def update_output(selected_community):
     community_df = df[df.communityName == selected_community]
-    # print(community_df)
     community_df = community_df.iloc[0]
-    fig = px.pie(community_df, names=['Белые', 'Чёрные',
-                                      'Азиаты', 'Латиноамериканцы'],
+    fig = px.pie(community_df, names=['Чёрные', 'Белые', 'Азиаты', 'Латиноамериканцы'],
                  values=[community_df['racepctblack'], community_df['racePctWhite'],
                          community_df['racePctAsian'], community_df['racePctHisp']])
 
-    fig.update_layout(title="Соотношение рас населения",
+    fig.update_layout(title=f"Соотношение рас в {selected_community}",
                       plot_bgcolor=colors['plot_bgcolor_3'],
                       paper_bgcolor=colors['plot_bgcolor_3'],
-                      font_color=colors['black']
-                      )
+                      font_color=colors['black'])
+    return fig
+
+
+@app.callback(
+    Output(component_id='races_states', component_property='figure'),
+    [Input(component_id='state_races', component_property='value')]
+)
+def update_output(selected_state):
+    state_df = states_df[states_df.state == selected_state]
+    state_df = state_df.iloc[0]
+    fig = px.pie(state_df, names=['Чёрные', 'Белые', 'Азиаты', 'Латиноамериканцы'],
+                 values=[state_df['racepctblack'], state_df['racePctWhite'],
+                         state_df['racePctAsian'], state_df['racePctHisp']])
+
+    fig.update_layout(title=f"Соотношение рас в {selected_state}",
+                      plot_bgcolor=colors['plot_bgcolor_4'],
+                      paper_bgcolor=colors['plot_bgcolor_4'],
+                      font_color=colors['black'])
+    return fig
+
+
+@app.callback(
+    Output(component_id='crimes', component_property='figure'),
+    [Input(component_id='communityName_crimes', component_property='value')]
+)
+def update_output(selected_community):
+    community_df = df[df.communityName == selected_community]
+    community_df = community_df.iloc[0]
+    fig = px.histogram(community_df,
+                       x=['Убийства', 'Изнасилования', 'Грабежи', 'Нападения', 'Кражи со взломом', 'Кражи',
+                          'Автокражи', 'Поджоги'],
+                       y=[community_df['murders'], community_df['rapes'], community_df['robberies'],
+                          community_df['assaults'], community_df['burglaries'], community_df['larcenies'],
+                          community_df['autoTheft'], community_df['arsons']])
+
+    fig.update_layout(yaxis_title="Количество преступлений",
+                      xaxis_title="Преступления",
+                      title=f"Соотношение преступлений в {selected_community}",
+                      plot_bgcolor=colors['plot_bgcolor_3'],
+                      paper_bgcolor=colors['plot_bgcolor_3'],
+                      font_color=colors['black'])
+    return fig
+
+
+@app.callback(
+    Output(component_id='crimes_states', component_property='figure'),
+    [Input(component_id='states_crimes', component_property='value')]
+)
+def update_output(selected_state):
+    state_df = states_df[states_df.state == selected_state]
+    state_df = state_df.iloc[0]
+    fig = px.histogram(state_df,
+                       x=['Убийства', 'Изнасилования', 'Грабежи', 'Нападения', 'Кражи со взломом', 'Кражи',
+                          'Автокражи', 'Поджоги'],
+                       y=[state_df['murders'], state_df['rapes'], state_df['robberies'],
+                          state_df['assaults'], state_df['burglaries'], state_df['larcenies'],
+                          state_df['autoTheft'], state_df['arsons']])
+
+    fig.update_layout(title=f"Соотношение рас в {selected_state}",
+                      plot_bgcolor=colors['plot_bgcolor_4'],
+                      paper_bgcolor=colors['plot_bgcolor_4'],
+                      font_color=colors['black'])
     return fig
 
 
