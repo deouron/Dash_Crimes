@@ -1,3 +1,11 @@
+# Примеры
+<img width="1440" alt="Снимок экрана 2022-11-30 в 15 32 02" src="https://user-images.githubusercontent.com/70703745/204797110-fb329fa8-9ae1-45e1-9d43-941655fd6cd8.png">
+
+<img width="1440" alt="Снимок экрана 2022-11-30 в 15 34 06" src="https://user-images.githubusercontent.com/70703745/204797536-b0d274c2-fcfd-4ca0-8da0-bba3ee12fc80.png">
+
+
+---
+
 Отрисуйте с помощью Dash или StreamLit данные из данного [датасета](https://www.kaggle.com/datasets/michaelbryantds/crimedata)
 
 Здесь необходимо провести самостоятельный анализ данных (можно даже в ноутбуке), в качестве результата необходим дашборд, внутри которого будет:
